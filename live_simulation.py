@@ -1,14 +1,16 @@
 import pygame
 from ekf_slam import *
-from test_stuff import *
 
 
 # landmarks = np.array([[3.4, 3.6], [-3.6, 3.7], [3.3, -3.7], [-3.5, -3], [-3, 3]])
+
+# Random landmark coordinates
 coord1 = float(np.random.uniform(low=3, high=4.5, size=1))
 coord2 = float(np.random.uniform(low=3, high=4.5, size=1))
 coord3 = float(np.random.uniform(low=3, high=4.5, size=1))
 coord4 = float(np.random.uniform(low=3, high=4.5, size=1))
 landmarks = np.array([[3.4, coord1], [-3.6, -coord2], [3.3, -coord3], [-3.5, coord4], [-3, 1]])
+
 color = 'aqua'
 colors = [color] * len(landmarks)
 dt = 0.1
@@ -30,6 +32,8 @@ Q = np.diag([0.02 / (scale ** 2), 0.05 / (scale ** 2)])
 
 
 def run_simulation():
+    # This is the main function that runs the simulation. It calls all the functions and create their path
+
     # -------------INITIAL SETUP-------------
     x = np.array([[0.0], [0.0], [0.0]])
     u_initial = np.array([[0.3], [0.3], [0.0], [0.0]])
@@ -111,7 +115,7 @@ def run_simulation():
         # -------------TRACING ROBOT'S PATH-------------
         step_counter += 1
         if step_counter % trace_interval == 0:
-            trace_points.append((pos_x, pos_y, x[0, 0]))
+            # trace_points.append((pos_x, pos_y, x[0, 0]))
             all_trace_points.append((pos_x, pos_y, x[0, 0]))
             odom_trace_points.append((odom_pos_x, odom_pos_y, odom_p[0, 0]))
             odom_all_points.append((odom_pos_x, odom_pos_y, odom_p[0, 0]))
@@ -123,13 +127,13 @@ def run_simulation():
             if len(ekf_trace_points) > max_trace_length:
                 ekf_trace_points.pop(0)
 
-        for trace_x, trace_y, trace_theta in trace_points:
+        for trace_x, trace_y, trace_theta in all_trace_points:
             trace_width_scaled = int(ROBOT_WIDTH * scale * 0.5)
             trace_length_scaled = int(ROBOT_LENGTH * scale * 0.5)
             trace_corners = find_corners(trace_x, trace_y, trace_length_scaled, trace_width_scaled, trace_theta)
             pygame.draw.polygon(screen, 'red', trace_corners, 0)
 
-        for odom_x, odom_y, odom_theta in odom_trace_points:
+        for odom_x, odom_y, odom_theta in odom_all_points:
             odom_width_scaled = int(ROBOT_WIDTH * scale * 0.5)
             odom_length_scaled = int(ROBOT_LENGTH * scale * 0.5)
             odom_corners = find_corners(odom_x, odom_y, odom_length_scaled, odom_width_scaled, odom_theta)
@@ -153,7 +157,7 @@ def run_simulation():
 
             mu_new, sig_new = ekf_slam_step(mu, sig, u_bad, z, R, Q, association_threshold)
 
-            # ekf_trace_points.append((400 + mu_new[1, 0] * scale, 300 - mu_new[2, 0] * scale, mu_new[0, 0]))
+            ekf_trace_points.append((400 + mu_new[1, 0] * scale, 300 - mu_new[2, 0] * scale, mu_new[0, 0]))
             all_ekf_trace_points.append((400 + mu_new[1, 0] * scale, 300 - mu_new[2, 0] * scale, mu_new[0, 0]))
             estimation.append((mu_new, sig_new))
 
@@ -164,11 +168,11 @@ def run_simulation():
                 ly = 300 - mu_new[l_idx + 1, 0] * scale
                 pygame.draw.circle(screen, 'slateblue', (float(lx), float(ly)), LANDMARK_RADIUS)
 
-        for ekf_x, ekf_y, ekf_theta in ekf_trace_points:
+        for ekf_x, ekf_y, ekf_theta in all_ekf_trace_points:
             ekf_width_scaled = int(ROBOT_WIDTH * scale * 0.5)
             ekf_length_scaled = int(ROBOT_LENGTH * scale * 0.5)
             ekf_corners = find_corners(ekf_x, ekf_y, ekf_length_scaled, ekf_width_scaled, ekf_theta)
-            pygame.draw.polygon(screen, 'purple', ekf_corners, 0)
+            # pygame.draw.polygon(screen, 'purple', ekf_corners, 0)
 
         # -------------LANDMARK HANDLING-------------
         for i, landmark in enumerate(landmarks):

@@ -7,6 +7,8 @@ dt = 0.1
 
 
 def diff_kinematics(x: np.ndarray, u: np.ndarray):
+    # This function returns the angular and linear velocity
+
     u = np.clip(u, 0.1, 0.5)
 
     left_motion = u[0, 0]
@@ -29,6 +31,8 @@ def diff_kinematics(x: np.ndarray, u: np.ndarray):
 
 
 def f_rk4_one_step(x0, u0):
+    # From the diff_kinematics function, I calculate velocities and I find the next position
+
     f1 = diff_kinematics(x0, u0)
     f2 = diff_kinematics(x0 + 0.5 * dt * f1, u0)
     f3 = diff_kinematics(x0 + 0.5 * dt * f2, u0)
@@ -39,13 +43,16 @@ def f_rk4_one_step(x0, u0):
 
 
 def sign(point1, point2, point3):
+    # It is used in is_point_in_triangle to find the sign of the area of a triangle (positive or negative value)
     return (point1[0] - point3[0]) * (point2[1] - point3[1]) - (point2[0] - point3[0]) * (point1[1] - point3[1])
 
 
-def is_point_in_triangle(coordination, triangle_v1, triangle_v2, triangle_v3):
-    d1 = sign(coordination, triangle_v1, triangle_v2)
-    d2 = sign(coordination, triangle_v2, triangle_v3)
-    d3 = sign(coordination, triangle_v3, triangle_v1)
+def is_point_in_triangle(coordinates, triangle_v1, triangle_v2, triangle_v3):
+    # Finds if the given coordinates are inside the triangle made from the points (v1,v2,v3)
+
+    d1 = sign(coordinates, triangle_v1, triangle_v2)
+    d2 = sign(coordinates, triangle_v2, triangle_v3)
+    d3 = sign(coordinates, triangle_v3, triangle_v1)
 
     has_neg = (d1 < 0) or (d2 < 0) or (d3 < 0)
     has_pos = (d1 > 0) or (d2 > 0) or (d3 > 0)
@@ -54,6 +61,9 @@ def is_point_in_triangle(coordination, triangle_v1, triangle_v2, triangle_v3):
 
 
 def radar_detection(x, landmark_list, f_point, l_point, r_point, scale):
+    # This function detects if any landmark is inside the radar. If yes then it returns a list of elements
+    # The list is [distance, angle_difference, number]
+
     detects = []
 
     pos_x = x[1, 0]
